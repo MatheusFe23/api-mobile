@@ -1,10 +1,14 @@
-import { Injectable, CanActivate, ExecutionContext, UnauthorizedException } from '@nestjs/common';
-import { Reflector } from '@nestjs/core';
-import { AuthGuard } from '@nestjs/passport';
-import { IS_PUBLIC_KEY } from '../decorators/public.decorator';
+import {
+  Injectable,
+  ExecutionContext,
+  UnauthorizedException,
+} from "@nestjs/common";
+import { Reflector } from "@nestjs/core";
+import { AuthGuard } from "@nestjs/passport";
+import { IS_PUBLIC_KEY } from "../decorators/public.decorator";
 
 @Injectable()
-export class JwtAuthGuard extends AuthGuard('jwt') {
+export class JwtAuthGuard extends AuthGuard("jwt") {
   constructor(private reflector: Reflector) {
     super();
   }
@@ -20,10 +24,16 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
     return super.canActivate(context);
   }
 
-  handleRequest(err, user, info) {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  handleRequest<TUser = any>(err: any, user: any, _info: any): TUser {
     if (err || !user) {
-      throw err || new UnauthorizedException('Acesso negado. Token inválido ou não fornecido.');
+      throw (
+        err ||
+        new UnauthorizedException(
+          "Acesso negado. Token inválido ou não fornecido.",
+        )
+      );
     }
-    return user;
+    return user as TUser;
   }
 }
