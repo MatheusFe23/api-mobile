@@ -2,6 +2,7 @@ import {
   Injectable,
   NotFoundException,
   ConflictException,
+  OnApplicationBootstrap,
 } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
@@ -11,7 +12,7 @@ import { CreateUserDto } from "../dtos/create-user.dto";
 import { UpdateUserDto } from "../dtos/update-user.dto";
 
 @Injectable()
-export class UsersService {
+export class UsersService implements OnApplicationBootstrap {
   constructor(
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
@@ -73,5 +74,23 @@ export class UsersService {
   async remove(id: number): Promise<void> {
     const user = await this.findOne(id);
     await this.userRepository.remove(user);
+  }
+
+  async onApplicationBootstrap() {
+    await this.seedAdminUser();
+  }
+
+  private async seedAdminUser() {
+    const email = 'admin@teste.com';
+    const existingAdmin = await this.findByEmail(email);
+    if (!existingAdmin) {
+      console.log('Criando usuário admin default...');
+      await this.create({
+        name: 'Admin',
+        email: email,
+        password: '123456',
+      });
+      console.log('Usuário admin default criado com sucesso.');
+    }
   }
 }

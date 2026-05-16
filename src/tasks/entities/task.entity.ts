@@ -11,9 +11,11 @@ import {
   MaxLength,
   IsBoolean,
   IsOptional,
+  IsEnum,
 } from "class-validator";
 import { ApiProperty } from "@nestjs/swagger";
 import { User } from "../../users/entities/user.entity";
+import { TaskCategory } from "../enums/task-category.enum";
 
 @Entity("tasks")
 export class Task {
@@ -59,6 +61,19 @@ export class Task {
   @ManyToOne(() => User, (user) => user.tasks, { onDelete: "CASCADE" })
   @JoinColumn({ name: "userId" })
   user: User;
+
+  @ApiProperty({
+    description: "The category of the task",
+    enum: TaskCategory,
+    example: TaskCategory.OUTROS,
+  })
+  @Column({
+    type: "varchar",
+    default: TaskCategory.OUTROS,
+  })
+  @IsEnum(TaskCategory, { message: "Invalid category" })
+  @IsOptional()
+  category: TaskCategory;
 
   @Column()
   userId: number;

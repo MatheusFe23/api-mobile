@@ -2,10 +2,12 @@ import {
   IsNotEmpty,
   IsDateString,
   MaxLength,
-  IsBoolean,
   IsOptional,
+  IsEnum,
+  IsBoolean,
 } from "class-validator";
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
+import { TaskCategory } from "../enums/task-category.enum";
 
 export class CreateTaskDto {
   @ApiProperty({
@@ -38,4 +40,13 @@ export class CreateTaskDto {
   @IsNotEmpty({ message: "Due date is required" })
   @IsDateString({}, { message: "Must be a valid ISO date string" })
   dueDate: string;
+
+  @ApiPropertyOptional({
+    description: "The category of the task",
+    enum: TaskCategory,
+    example: TaskCategory.OUTROS,
+  })
+  @IsOptional()
+  @IsEnum(TaskCategory, { message: "Invalid category" })
+  category?: TaskCategory;
 }

@@ -4,6 +4,7 @@ import { JwtService } from "@nestjs/jwt";
 import * as bcrypt from "bcrypt";
 import { LoginDto } from "../dtos/login.dto";
 import { User } from "../../users/entities/user.entity";
+import { jwtConstants } from "../constants";
 
 @Injectable()
 export class AuthService {
@@ -29,16 +30,51 @@ export class AuthService {
     throw new UnauthorizedException("Credenciais inválidas");
   }
 
+  async generateTokens(payload: { email: string; sub: number }) {
+    const [access_token, refresh_token] = await Promise.all([
+      this.jwtService.signAsync(payload, {
+        secret: jwtConstants.secret,
+        expiresIn: "15m",
+      }),
+      this.jwtService.signAsync(payload, {
+        secret: jwtConstants.refreshSecret,
+        expiresIn: "7d",
+      }),
+    ]);
+    return { access_token, refresh_token };
+  }
+
   async login(loginDto: LoginDto) {
     const user = await this.validateUser(loginDto.email, loginDto.password);
     const payload = { email: user.email, sub: user.id };
+    const tokens = await this.generateTokens(payload);
     return {
-      access_token: this.jwtService.sign(payload),
+      ...tokens,
       user: {
         id: user.id,
         name: user.name,
         email: user.email,
       },
     };
+  }
+
+  async refreshToken(refreshToken: string) {
+    try {
+      const payload = await this.jwtService.verifyAsync(refreshToken, {
+        secret: jwtConstants.refreshSecret,
+      });
+
+      // Validar se o usuário ainda existe
+      const user = await this.usersService.findByEmail(payload.email);
+      if (!user) {
+        throw new UnauthorizedException("Usuário não encontrado");
+      }
+
+      const newPayload = { email: user.email, sub: user.id };
+      const tokens = await this.generateTokens(newPayload);
+      return tokens;
+    } catch (e) {
+      throw new UnauthorizedException("Refresh token inválido ou expirado");
+    }
   }
 }

@@ -1,6 +1,7 @@
 import { Module } from "@nestjs/common";
 import { AuthService } from "./services/auth.service";
 import { UsersModule } from "../users/users.module";
+import { TasksModule } from "../tasks/tasks.module";
 import { PassportModule } from "@nestjs/passport";
 import { JwtModule } from "@nestjs/jwt";
 import { jwtConstants } from "./constants";
@@ -12,10 +13,11 @@ import { JwtAuthGuard } from "./guards/jwt-auth.guard";
 @Module({
   imports: [
     UsersModule,
+    TasksModule,
     PassportModule,
     JwtModule.register({
       secret: jwtConstants.secret,
-      signOptions: { expiresIn: "1d" }, // Token válido por 1 dia
+      signOptions: { expiresIn: "15m" }, // Token válido por 15 minutos
     }),
   ],
   controllers: [AuthController],
