@@ -13,7 +13,7 @@ import {
   IsOptional,
   IsEnum,
 } from "class-validator";
-import { ApiProperty } from "@nestjs/swagger";
+import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { User } from "../../users/entities/user.entity";
 import { TaskCategory } from "../enums/task-category.enum";
 
@@ -29,15 +29,15 @@ export class Task {
   })
   @Column()
   @IsNotEmpty({ message: "Title is required" })
-  @MaxLength(100, { message: "Title cannot exceed 100 characters" })
+  @MaxLength(255, { message: "Title cannot exceed 255 characters" })
   title: string;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: "Detailed description of the task",
     example: "Milk, Eggs, Bread and Butter",
   })
-  @Column("text")
-  @IsNotEmpty({ message: "Description is required" })
+  @Column("text", { default: "" })
+  @IsOptional()
   description: string;
 
   @ApiProperty({
@@ -49,14 +49,14 @@ export class Task {
   @IsOptional()
   isCompleted: boolean;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: "The deadline for this task",
     example: "2026-12-31T23:59:59.000Z",
   })
-  @Column()
-  @IsNotEmpty({ message: "Due date is required" })
+  @Column({ nullable: true })
+  @IsOptional()
   @IsDateString({}, { message: "Must be a valid ISO date string" })
-  dueDate: Date;
+  dueDate?: Date;
 
   @ManyToOne(() => User, (user) => user.tasks, { onDelete: "CASCADE" })
   @JoinColumn({ name: "userId" })

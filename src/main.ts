@@ -14,6 +14,20 @@ async function bootstrap() {
     }),
   );
 
+  app.use((req, res, next) => {
+    console.log(`\n[API LOGGER] Incoming: ${req.method} ${req.url}`);
+    if (req.body && Object.keys(req.body).length > 0) {
+      console.log(`[API LOGGER] Body:`, JSON.stringify(req.body));
+    }
+    const originalSend = res.send;
+    res.send = function (body) {
+      console.log(`[API LOGGER] Outgoing Status: ${res.statusCode}`);
+      console.log(`[API LOGGER] Response:`, body);
+      return originalSend.apply(this, arguments);
+    };
+    next();
+  });
+
   const config = new DocumentBuilder()
     .setTitle("API Mobile CRUD")
     .setDescription("A documentação completa da API do CRUD de usuários")

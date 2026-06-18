@@ -35,6 +35,7 @@ export class TasksController {
     @Request() req: RequestWithUser,
     @Body() createTaskDto: CreateTaskDto,
   ) {
+    console.log('[TasksController] CREATE payload:', JSON.stringify(createTaskDto));
     return this.tasksService.create(createTaskDto, req.user.id);
   }
 
@@ -60,6 +61,7 @@ export class TasksController {
     @Param("id", ParseIntPipe) id: number,
     @Body() updateTaskDto: UpdateTaskDto,
   ) {
+    console.log('[TasksController] UPDATE id:', id, 'payload:', JSON.stringify(updateTaskDto));
     return this.tasksService.update(id, req.user.id, updateTaskDto);
   }
 
