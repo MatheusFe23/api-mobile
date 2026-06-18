@@ -48,11 +48,14 @@ export class AuthService {
   }
 
   private async getAiInsights(tasks: Task[]): Promise<any> {
+    console.log("=== getAiInsights Iniciado ===");
     if (!tasks || tasks.length === 0) {
+      console.log("Nenhuma tarefa para enviar para o Gemini.");
       return { suggestion: "Você não tem tarefas recentes para análise." };
     }
 
     const apiKey = process.env.GEMINI_API_KEY;
+    console.log("Verificando GEMINI_API_KEY:", apiKey ? `Configurada (começa com ${apiKey.substring(0, 6)}...)` : "NÃO CONFIGURADA");
     if (!apiKey) {
       return {
         suggestion: "A chave da API do Gemini não está configurada. (GEMINI_API_KEY)",
@@ -71,9 +74,11 @@ Analise as tarefas e retorne APENAS um JSON válido com a seguinte estrutura:
 }
 `;
 
+    console.log("Enviando prompt ao Gemini...");
+
     try {
       const response = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -86,12 +91,18 @@ Analise as tarefas e retorne APENAS um JSON válido com a seguinte estrutura:
         },
       );
 
+      console.log("Resposta HTTP do Gemini Status:", response.status, response.statusText);
+
       const data = await response.json();
+      console.log("Corpo da resposta do Gemini:", JSON.stringify(data, null, 2));
+
       const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
+      console.log("Texto extraído dos candidates:", text);
 
       if (text) {
         return JSON.parse(text);
       }
+      console.log("Nenhum texto encontrado nos candidates, retornando null.");
       return null;
     } catch (e) {
       console.error("Erro ao obter insights da IA:", e);
@@ -111,6 +122,8 @@ Analise as tarefas e retorne APENAS um JSON válido com a seguinte estrutura:
       .slice(0, 10);
 
     const ai_insights = await this.getAiInsights(recentTasks);
+    console.log("=== AI Insights Log ===");
+    console.log(JSON.stringify(ai_insights, null, 2));
 
     return {
       ...tokens,

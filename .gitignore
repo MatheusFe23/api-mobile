@@ -36,3 +36,4 @@ lerna-debug.log*
 # Database
 database.sqlite
 database.sqlite-journal
+.env

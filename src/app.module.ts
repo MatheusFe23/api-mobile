@@ -1,4 +1,5 @@
 import { Module } from "@nestjs/common";
+import { ConfigModule } from "@nestjs/config";
 import { TypeOrmModule } from "@nestjs/typeorm";
 import { AppController } from "./app.controller";
 import { AppService } from "./app.service";
@@ -8,6 +9,9 @@ import { TasksModule } from "./tasks/tasks.module";
 
 @Module({
   imports: [
+    ConfigModule.forRoot({
+      isGlobal: true, // Torna o ConfigModule global, sem precisar importar em outros módulos
+    }),
     TypeOrmModule.forRoot({
       type: "sqlite",
       database: "database.sqlite", // Agora persistido em arquivo
