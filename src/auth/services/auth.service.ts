@@ -72,13 +72,23 @@ Analise as tarefas e retorne APENAS um JSON válido com a seguinte estrutura:
 `;
 
     try {
+      console.log("=== INICIANDO CHAMADA GEMINI ===");
+      console.log("API KEY existe?", !!apiKey);
+      console.log("Prompt:", prompt);
+
       const response = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key=${apiKey}`,
         {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: {
+            "Content-Type": "application/json",
+          },
           body: JSON.stringify({
-            contents: [{ parts: [{ text: prompt }] }],
+            contents: [
+              {
+                parts: [{ text: prompt }],
+              },
+            ],
             generationConfig: {
               responseMimeType: "application/json",
             },
@@ -86,16 +96,41 @@ Analise as tarefas e retorne APENAS um JSON válido com a seguinte estrutura:
         },
       );
 
-      const data = await response.json();
-      const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
+      console.log("Status:", response.status);
+      console.log("Status Text:", response.statusText);
+      console.log("OK?", response.ok);
+
+      const raw = await response.text();
+
+      console.log("Resposta bruta:");
+      console.log(raw);
+
+      const data = JSON.parse(raw);
+
+      console.log("JSON convertido:");
+      console.dir(data, { depth: null });
+
+      const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+
+      console.log("Texto extraído:", text);
 
       if (text) {
+        console.log("JSON final:", text);
+
         return JSON.parse(text);
       }
+
+      console.warn("Nenhum texto retornado pela IA.");
       return null;
     } catch (e) {
-      console.error("Erro ao obter insights da IA:", e);
-      return { error: "Não foi possível obter sugestões da IA." };
+      console.error("=== ERRO GEMINI ===");
+      console.error("Mensagem:", e?.message);
+      console.error("Stack:", e?.stack);
+      console.error("Erro completo:", e);
+
+      return {
+        error: "Não foi possível obter sugestões da IA.",
+      };
     }
   }
 
@@ -111,6 +146,7 @@ Analise as tarefas e retorne APENAS um JSON válido com a seguinte estrutura:
       .slice(0, 10);
 
     const ai_insights = await this.getAiInsights(recentTasks);
+    console.log('Respota da IA:',ai_insights );
 
     return {
       ...tokens,
